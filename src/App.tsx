@@ -7,67 +7,14 @@ import { getIcon } from "./lib/fileicon"
 import { Carpets } from "./types"
 import { getFileNameFromPath } from "./lib/getFileNameFromPath"
 import { Separator } from "./components/ui/separator"
-
-const carpets: Carpets[] = [
-  {
-    name: "Documents",
-    path: "/home/user/Documents",
-    isDir: true,
-    children: [
-      {
-        name: "ProjectPlan",
-        path: "/home/user/Documents/ProjectPlan.pdf",
-        isDir: false,
-        metadata: {
-          file: "pdf",
-        },
-      },
-      {
-        name: "Reports",
-        path: "/home/user/Documents/Reports",
-        isDir: true,
-        children: [
-          {
-            name: "AnnualReport.pdf",
-            path: "/home/user/Documents/Reports/AnnualReport.pdf",
-            isDir: false,
-            metadata: {
-              file: "pdf",
-            },
-          },
-        ],
-      },
-    ],
-  },
-  {
-    name: "VacationPhotos",
-    path: "/home/user/Pictures/Vacation",
-    isDir: true,
-    children: [
-      {
-        name: "Beach.png",
-        path: "/home/user/Pictures/Vacation/Beach.png",
-        isDir: false,
-        metadata: {
-          file: "png",
-        },
-      },
-      {
-        name: "Mountain.png",
-        path: "/home/user/Pictures/Vacation/Mountain.png",
-        isDir: false,
-        metadata: {
-          file: "png",
-        },
-      },
-    ],
-  },
-]
+import { cn } from "./lib/utils"
+import { carpets } from "./constants/carpets"
 
 function App() {
   const [carpetName, setCarpetName] = useState("")
   const [currentFolder, setCurrentFolder] = useState(carpets)
   const [folderHistory, setFolderHistory] = useState<Carpets[][]>([])
+  const [view, setView] = useState(false)
 
   // Filtrar carpetas y archivos cuyo nombre coincide con el texto ingresado
   const filteredCarpets = currentFolder.filter((carpet) =>
@@ -134,11 +81,33 @@ function App() {
             </Button>
             <Separator orientation="vertical" className="h-8" />
             <div className="flex">
-              <Button size="icon" className="px-4 group" variant="ghost">
-                <LayoutGrid className="stroke-primary" />
+              <Button
+                type="button"
+                size="icon"
+                className="px-4 group"
+                variant="ghost"
+                onClick={() => setView(false)}
+              >
+                <LayoutGrid
+                  className={cn(
+                    "group-hover:stroke-primary",
+                    view ? "" : "stroke-primary"
+                  )}
+                />
               </Button>
-              <Button size="icon" className="px-4 group" variant="ghost">
-                <List className="group-hover:stroke-primary" />
+              <Button
+                type="button"
+                size="icon"
+                className="px-4 group"
+                variant="ghost"
+                onClick={() => setView(true)}
+              >
+                <List
+                  className={cn(
+                    "group-hover:stroke-primary",
+                    view ? "stroke-primary" : ""
+                  )}
+                />
               </Button>
             </div>
           </div>
@@ -149,48 +118,94 @@ function App() {
         </div>
       </header>
       <main className="container mx-auto">
-        <section className="grid grid-cols-3 gap-4">
-          {filteredCarpets.map((carpet) => {
-            const { imgSrc, message } = getIcon(carpet.path)
-            return (
-              <div
-                key={carpet.path}
-                className="bg-gray-300/20 hover:bg-gray-300/60 h-44 rounded-xl flex p-8 cursor-pointer"
-                onClick={() => openFolder(carpet)}
-              >
-                {carpet.metadata ? (
-                  <div className="flex flex-col gap-3 items-start">
-                    <img src={imgSrc} alt="img" className="h-16" />
-                    {message ? (
-                      <div className="flex flex-col">
-                        <span className="font-semibold">{message}</span>
-                        <span>{getFileNameFromPath(carpet.path)}</span>
-                      </div>
-                    ) : (
-                      getFileNameFromPath(carpet.path)
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3 items-start">
-                    <img
-                      src="/assets/folder.png"
-                      alt="folder"
-                      className="h-16"
-                    />
-                    <div className="flex flex-col">
-                      <span className="font-semibold">
-                        {getFileNameFromPath(carpet.path)}
-                      </span>
-                      <span className="text-gray-500">
-                        {carpet.children?.length} Files
-                      </span>
+        {view ? (
+          <section className="flex flex-col gap-1">
+            {filteredCarpets.map((carpet) => {
+              const { imgSrc, message } = getIcon(carpet.path)
+              return (
+                <div
+                  key={carpet.path}
+                  onClick={() => openFolder(carpet)}
+                  className="flex gap-2 bg-gray-300/20 hover:bg-gray-300/60 p-2 rounded-md cursor-pointer"
+                >
+                  {carpet.metadata ? (
+                    <div className="flex gap-3 items-start">
+                      <img src={imgSrc} alt="img" className="h-6" />
+                      {message ? (
+                        <div className="flex gap-3">
+                          <span className="font-semibold">{message}</span>
+                          <span>{getFileNameFromPath(carpet.path)}</span>
+                        </div>
+                      ) : (
+                        getFileNameFromPath(carpet.path)
+                      )}
                     </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </section>
+                  ) : (
+                    <div className="flex gap-3 items-start">
+                      <img
+                        src="/assets/folder.png"
+                        alt="folder"
+                        className="h-6"
+                      />
+                      <div className="flex gap-3">
+                        <span className="font-semibold">
+                          {getFileNameFromPath(carpet.path)}
+                        </span>
+                        <span className="text-gray-500">
+                          {carpet.children?.length} Files
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            <div></div>
+          </section>
+        ) : (
+          <section className="grid grid-cols-3 gap-4">
+            {filteredCarpets.map((carpet) => {
+              const { imgSrc, message } = getIcon(carpet.path)
+              return (
+                <div
+                  key={carpet.path}
+                  className="bg-gray-300/20 hover:bg-gray-300/60 h-44 rounded-xl flex p-8 cursor-pointer"
+                  onClick={() => openFolder(carpet)}
+                >
+                  {carpet.metadata ? (
+                    <div className="flex flex-col gap-3 items-start">
+                      <img src={imgSrc} alt="img" className="h-16" />
+                      {message ? (
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{message}</span>
+                          <span>{getFileNameFromPath(carpet.path)}</span>
+                        </div>
+                      ) : (
+                        getFileNameFromPath(carpet.path)
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3 items-start">
+                      <img
+                        src="/assets/folder.png"
+                        alt="folder"
+                        className="h-16"
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-semibold">
+                          {getFileNameFromPath(carpet.path)}
+                        </span>
+                        <span className="text-gray-500">
+                          {carpet.children?.length} Files
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </section>
+        )}
       </main>
     </section>
   )
